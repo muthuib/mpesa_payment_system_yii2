@@ -2,12 +2,12 @@
 
 namespace app\controllers;
 use yii;
-use app\models\FormData;
-use app\models\FormDataSearch;
-use yii\web\Controller;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 use TCPDF;
+use yii\web\Controller;
+use app\models\FormData;
+use yii\filters\VerbFilter;
+use app\models\search\FormDataSearch;
+use yii\web\NotFoundHttpException;
 
 /**
  * FormDataController implements the CRUD actions for FormData model.
@@ -41,7 +41,8 @@ class FormDataController extends Controller
     {
         $searchModel = new FormDataSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
-
+        //dump($dataProvider);
+        
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,

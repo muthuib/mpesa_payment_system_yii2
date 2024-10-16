@@ -52,6 +52,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
                     <!-- Adjust max-width as needed -->
                     <?= Alert::widget() ?>
                 </div>
+
                 <?= $content ?>
             </div>
         </div>

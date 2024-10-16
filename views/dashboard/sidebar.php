@@ -48,7 +48,7 @@ $currentUrl = Yii::$app->request->url;
         </li><!-- End  Details Nav -->
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/form-data/create']) ?>">
+            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/form-data/index']) ?>">
                 <i class="bi bi-book"></i>
                 <span>pdf details</span>
             </a>
@@ -84,7 +84,8 @@ $currentUrl = Yii::$app->request->url;
     </ul>
 
     <!-- Admin options -->
-    <!-- <?//php if ((new user)->checkRole(Yii::$app->user->id, user::ROLE_ADMIN)) : ?>
+    <!-- <? //php if ((new user)->checkRole(Yii::$app->user->id, user::ROLE_ADMIN)) : 
+            ?>
     <li class="nav-item">
         <a class="nav-link collapsed" data-bs-target="#pages-nav" data-bs-toggle="collapse" href="#">
             <i class="bi bi-menu-button-wide"></i><span>Admin</span><i class="bi bi-chevron-down ms-auto"></i>
@@ -99,5 +100,5 @@ $currentUrl = Yii::$app->request->url;
         </ul>
     </li>
     <//?php endif; ?> -->
-
-</aside><!-- End Sidebar-->
+</aside>
+<!-- End Sidebar-->
