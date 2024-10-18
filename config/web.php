@@ -27,6 +27,11 @@ $config = [
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
+        ///onfigure the RBAC componen
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
+
         //configure mailer
 
         // 'mailer' => [

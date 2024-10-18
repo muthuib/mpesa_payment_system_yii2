@@ -4,8 +4,11 @@
  * This is the main sidebar
  */
 
-use app\models\JobInterview;
-use app\models\user;
+use yii\helpers\Html;
+
+// Example permission names
+$manageUsersPermission = 'manageUsers';
+
 
 ?>
 <?php
@@ -39,13 +42,16 @@ $currentUrl = Yii::$app->request->url;
                 </li>
             </ul>
         </li><!-- End  Nav -->
-
+        <!-- check if the user has a permission to manage users -->
+        <?php if (Yii::$app->user->can($manageUsersPermission)): ?>
         <li class="nav-item <?= strpos($currentUrl, '/applicant-details/create') !== false ? 'active' : '' ?>">
-            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/applicant-details/create']) ?>">
+            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/user/manage']) ?>">
                 <i class="bi bi-person-rolodex"></i>
-                <span>read</span>
+                <span>Manage Users</span>
             </a>
-        </li><!-- End  Details Nav -->
+        </li>
+        <?php endif; ?>
+        <!-- End  Details Nav -->
 
         <li class="nav-item">
             <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/form-data/index']) ?>">
@@ -55,25 +61,59 @@ $currentUrl = Yii::$app->request->url;
         </li><!-- End details Nav -->
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/language/index']) ?>">
+            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/post/index']) ?>">
                 <i class="bi bi-translate"></i></i>
-                <span>Skills</span>
+                <span>Post</span>
             </a>
         </li><!-- End  Skills Nav -->
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/employment-history/index']) ?>">
+            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/role/index']) ?>">
                 <i class="bi bi-buildings"></i>
-                <span>History</span>
+                <span>Assign Roles</span>
             </a>
-        </li><!-- End History Nav -->
-        </li>
-        <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/user/profile']) ?>">
-            <i class="bi bi-person-fill"></i>
-            <span> View Profile </span>
+        </li><!-- End  Nav -->
+        <li>
+            <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['role/create-role']) ?>">
+                <i class="bi bi-person-fill"></i>
+                <span> Create Role</span>
 
-        </a>
+            </a>
         </li>
+
+
+        <!-- ASSIGN PERMISSIONS IMPLEMENTATION IN SIDEBAR -->
+        <!-- Assign Permissions section -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseRoles"
+                aria-expanded="true" aria-controls="collapseRoles">
+                <i class="fas fa-user-shield"></i>
+                <span>Manage Roles & Permissions</span>
+            </a>
+            <div id="collapseRoles" class="collapse" aria-labelledby="headingRoles" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Assign Permissions:</h6>
+                    <ul class="list-group">
+                        <?php
+                            $roles = Yii::$app->authManager->getRoles(); // Fetch all roles
+                            foreach ($roles as $role) : ?>
+                        <li class="list-group-item">
+                            <a
+                                href="<?= Yii::$app->urlManager->createUrl(['role/assign-permission', 'roleName' => $role->name]) ?>">
+                                <?= Html::encode($role->name) ?> - Assign Permissions
+                            </a>
+                        </li>
+
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+
+            </div>
+        </li>
+
+        <!-- END OF ASSIGN PERMISSION IMPLEMENTATION -->
+
 
         <li class="nav-item">
             <a class="nav-link collapsed" href="<?= Yii::$app->urlManager->createUrl(['/applications/index']) ?>">
