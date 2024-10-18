@@ -1,20 +1,18 @@
 <?php
 
 namespace app\controllers;
-use yii;
-use TCPDF;
+
+use app\models\Post;
 use yii\web\Controller;
-use app\models\FormData;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
+use yii\data\ActiveDataProvider;
 use yii\web\NotFoundHttpException;
-use yii\web\ForbiddenHttpException;
-use app\models\search\FormDataSearch;
 
 /**
- * FormDataController implements the CRUD actions for FormData model.
+ * PostController implements the CRUD actions for Post model.
  */
-class FormDataController extends Controller
+class PostController extends Controller
 {
     /**
      * @inheritDoc
@@ -30,7 +28,7 @@ class FormDataController extends Controller
                         'delete' => ['POST'],
                     ],
                 ],
-                ////
+                ///implements RBAC
                 'access' => [
                     'class' => AccessControl::class,
                     'rules' => [
@@ -40,9 +38,9 @@ class FormDataController extends Controller
                             'roles' => ['admin'], // Only admin can create/update
                         ],
                         [
-                            'actions' => ['index'],
+                            'actions' => ['index', 'create'],
                             'allow' => true,
-                            'roles' => ['viewer'], // viewer can only view send pdf on index only
+                            'roles' => ['viewer'], // viewer can only view posts
                         ],
                         [
                             'actions' => ['index', 'view'],
@@ -54,30 +52,39 @@ class FormDataController extends Controller
                         ],
                     ],
                 ],
+
             ]
-            
         );
     }
 
     /**
-     * Lists all FormData models.
+     * Lists all Post models.
      *
      * @return string
      */
     public function actionIndex()
     {
-        $searchModel = new FormDataSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
-        //dump($dataProvider);
-        
+        $dataProvider = new ActiveDataProvider([
+            'query' => Post::find(),
+            /*
+            'pagination' => [
+                'pageSize' => 50
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                ]
+            ],
+            */
+        ]);
+
         return $this->render('index', [
-            'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
 
     /**
-     * Displays a single FormData model.
+     * Displays a single Post model.
      * @param int $id ID
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
@@ -89,17 +96,21 @@ class FormDataController extends Controller
         ]);
     }
 
-    
+    /**
+     * Creates a new Post model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return string|\yii\web\Response
+     */
     public function actionCreate()
     {
-         $model = new FormData();
+        $model = new Post();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            // Generate PDF and send email
-            $this->generatePdfAndSendEmail($model);
-
-            // Redirect to a thank you page or back to the form
-            return $this->redirect(['thank-you']);
+        if ($this->request->isPost) {
+            if ($model->load($this->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
+        } else {
+            $model->loadDefaultValues();
         }
 
         return $this->render('create', [
@@ -107,40 +118,8 @@ class FormDataController extends Controller
         ]);
     }
 
-    protected function generatePdfAndSendEmail($model)
-    {
-        // Create new PDF document using TCPDF
-        $pdf = new TCPDF();
-        $pdf->AddPage();
-
-        // Create HTML content for PDF
-        $html = $this->renderPartial('_pdf', ['model' => $model]);
-        $pdf->writeHTML($html, true, false, true, false, '');
-
-        // Save the PDF to a temporary file
-        $pdfFilePath = Yii::getAlias('@webroot') . '/uploads/form_data_' . $model->id . '.pdf';
-        $pdf->Output($pdfFilePath, 'F');
-
-        // Send an email with the PDF attached
-        Yii::$app->mailer->compose()
-            ->setTo($model->email)
-            ->setFrom([Yii::$app->params['adminEmail'] => 'Admin'])
-            ->setSubject('Your Submitted Form Data')
-            ->setTextBody('Please find the attached PDF of the form you submitted.')
-            ->attach($pdfFilePath)
-            ->send();
-
-        // Delete the PDF file after sending
-        @unlink($pdfFilePath);
-    }
-
-    public function actionThankYou()
-    {
-        return $this->render('thank-you');
-    }
-
     /**
-     * Updates an existing FormData model.
+     * Updates an existing Post model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id ID
      * @return string|\yii\web\Response
@@ -160,7 +139,7 @@ class FormDataController extends Controller
     }
 
     /**
-     * Deletes an existing FormData model.
+     * Deletes an existing Post model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id ID
      * @return \yii\web\Response
@@ -174,19 +153,18 @@ class FormDataController extends Controller
     }
 
     /**
-     * Finds the FormData model based on its primary key value.
+     * Finds the Post model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return FormData the loaded model
+     * @return Post the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = FormData::findOne(['id' => $id])) !== null) {
+        if (($model = Post::findOne(['id' => $id])) !== null) {
             return $model;
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
-
 }
