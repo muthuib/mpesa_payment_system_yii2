@@ -124,42 +124,48 @@ class RoleController extends Controller
     }
     // CODE TO ASSIGN OR REMOVE PERMISSION FROM A ROLE
     public function actionAssignPermission($roleName)
-{
-    $auth = Yii::$app->authManager;
-    $role = $auth->getRole($roleName);
+    {
+        $auth = Yii::$app->authManager;
+        $role = $auth->getRole($roleName);
 
-    if (!$role) {
-        throw new NotFoundHttpException("Role not found.");
-    }
-
-    // Fetch available permissions
-    $permissions = $auth->getPermissions();
-    $rolePermissions = $auth->getPermissionsByRole($roleName);
-    $assignedPermissions = array_keys($rolePermissions);
-
-    $model = new \app\models\AssignPermissionForm(['permissions' => $assignedPermissions]);
-
-    if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-        // Clear old permissions
-        $auth->removeChildren($role);
-
-        // Assign selected permissions
-        foreach ($model->permissions as $permissionName) {
-            $permission = $auth->getPermission($permissionName);
-            if ($permission) {
-                $auth->addChild($role, $permission);
-            }
+        if (!$role) {
+            throw new NotFoundHttpException("Role not found.");
         }
 
-        Yii::$app->session->setFlash('success', 'Permissions updated successfully.');
-        return $this->redirect(['index']);
-    } 
+        // Fetch available permissions
+        $permissions = $auth->getPermissions();
+        $rolePermissions = $auth->getPermissionsByRole($roleName);
+        $assignedPermissions = array_keys($rolePermissions);
 
-    return $this->render('assign-permission', [
-        'role' => $role,
-        'permissions' => $permissions,
-        'model' => $model,
-    ]);
-}
+        $model = new \app\models\AssignPermissionForm(['permissions' => $assignedPermissions]);
+
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            // Clear all current permissions assigned to the role
+            $auth->removeChildren($role);
+
+            // Check if at least one permission is selected
+            if (empty($model->permissions)) {
+                Yii::$app->session->setFlash('error', 'No permission is given to the user role.');
+                return $this->redirect(['role/assign-permission', 'roleName' => $roleName]);
+            }
+
+            // Assign selected permissions
+            foreach ($model->permissions as $permissionName) {
+                $permission = $auth->getPermission($permissionName);
+                if ($permission) {
+                    $auth->addChild($role, $permission);
+                }
+            }
+
+            Yii::$app->session->setFlash('success', 'Permissions updated successfully.');
+            return $this->redirect(['role/assign-permission', 'roleName' => $roleName]);
+        }
+
+        return $this->render('assign-permission', [
+            'role' => $role,
+            'permissions' => $permissions,
+            'model' => $model,
+        ]);
+    }
 
 }
