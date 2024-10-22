@@ -28,12 +28,12 @@ class UserController extends Controller
                     'class' => AccessControl::class,
                     'rules' => [
                         [
-                            'actions' => ['create', 'update', 'manage'],
+                            'actions' => ['create', 'update', 'manage', 'assign-role'],
                             'allow' => true,
                             'roles' => ['admin'], // Only admin can create/update and manage
                         ],
                         [
-                            'actions' => ['index', 'view'],
+                            'actions' => ['index', 'view', 'manage'],
                             'allow' => true,
                             'roles' => ['@'], // Allow authenticated users
                         ],
@@ -180,15 +180,33 @@ class UserController extends Controller
         $roleName = Yii::$app->request->post('roleName');
         $userId = Yii::$app->request->post('userId');
 
+        // Check if role is selected
+        if (empty($roleName)) {
+            Yii::$app->session->setFlash('error', 'Please select a role.');
+            return $this->redirect(['user/manage']);
+        }
+
         $role = $auth->getRole($roleName);
 
-        // Check if the user already has the role
-        if (!$auth->getAssignment($roleName, $userId)) {
-            $auth->assign($role, $userId);
-            Yii::$app->session->setFlash('success', 'Role assigned successfully.');
-        } else {
-            Yii::$app->session->setFlash('error', 'User already has this role.');
+        // Check if role exists
+        if ($role === null) {
+            Yii::$app->session->setFlash('error', 'Invalid role selected.');
+            return $this->redirect(['user/manage']);
         }
+
+        // Check if the user already has the selected role
+        $existingRole = $auth->getAssignment($roleName, $userId);
+        if ($existingRole) {
+            Yii::$app->session->setFlash('error', 'User already has this role.');
+            return $this->redirect(['user/manage']);
+        }
+
+        // Remove all existing roles for the user
+        $auth->revokeAll($userId);
+
+        // Assign the new role
+        $auth->assign($role, $userId);
+        Yii::$app->session->setFlash('success', 'New role assigned and previous roles removed successfully.');
 
         return $this->redirect(['user/manage']);
     }

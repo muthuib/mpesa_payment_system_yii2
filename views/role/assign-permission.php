@@ -10,30 +10,11 @@ $this->title = 'Assign Permissions to Role: ' . $role->name;
 
 <?php $form = ActiveForm::begin(); ?>
 
-<?php
-// Categorize permissions into 'CRUD' (Create, Read/View, Update, Delete) and 'Other'
-$crudPermissions = [];
-$otherPermissions = [];
-
-foreach ($permissions as $permission) {
-    $name = $permission->description ?: $permission->name;
-
-    // Check if permission contains 'create', 'view', 'update', or 'delete'
-    if (preg_match('/create|view|update|delete/i', $permission->name)) {
-        $crudPermissions[$permission->name] = $name;
-    } else {
-        $otherPermissions[$permission->name] = $name;
-    }
-}
-?>
-
-<!-- Display Create, Update, Delete, View Permissions (CRUD) -->
-<h3>CRUD Permissions (Create, Update, Delete, View)</h3>
-<?= $form->field($model, 'permissions')->checkboxList($crudPermissions)->label(false) ?>
-
-<!-- Display Other Permissions -->
-<h3>Other Permissions</h3>
-<?= $form->field($model, 'permissions')->checkboxList($otherPermissions)->label(false) ?>
+<?= $form->field($model, 'permissions')->checkboxList(
+    array_map(function ($permission) {
+        return $permission->description ?: $permission->name;
+    }, $permissions)
+) ?>
 
 <div class="form-group">
     <?= Html::submitButton('Assign Permissions', ['class' => 'btn btn-primary']) ?>
